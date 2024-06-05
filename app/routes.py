@@ -1,9 +1,11 @@
 # Importamos el modulo "Resource" de la librería flask_restful
-from flask_restful import Resource
+from flask_restful import Resource # <- Es un clase
 # El modulo request nos permite aceptar info de un usuario
 from flask import request, jsonify
-# Convierte la info de texto a un diccionario
-from urllib.parse import parse_qs
+# Importamos los métodos de nuestra API
+from .methods import *
+
+
 
 lista_objetos_almacen = [
 {
@@ -11,7 +13,6 @@ lista_objetos_almacen = [
   'nombre': 'Lapiz',
   'cantidad': 4
 },
-
 {
   'id':2,
   'nombre': 'Goma',
@@ -27,33 +28,32 @@ lista_objetos_almacen = [
 
 # Creamos una clase que va a heredar atributos del modulo "Resource"
 class HelloWorld(Resource):
-
   # Este método se va a ejecutar cuando el usuario acceda a cierta ruta a través del método GET  
   def get(self):
     # Regresarnos un diccionario con el mensaje que queremos mostrar
     return { 'message': 'Hola mundo desde la API', 'status':200 }
 
+
+
 class Almacen(Resource):
   # Obtenemos la información del almacén
+  # Le pedimos información a la ruta por medio de un GET
   def get(self):
-    return { 'Objetos': lista_objetos_almacen, 'status':200 }
+    # Esta variable va a interceptar la informacion de nuestra Query
+    parametro_id = request.args.get('id')
+    parametro_nombre = request.args.get('nombre')
 
+    return buscar_elemento_id_nombre(lista_objetos_almacen, parametro_id, parametro_nombre)
   # Ponemos un nuevo objeto en el almacén
+  # Enviarle informacion a la API mediante el cliente
   def post(self):
     # Se crea una nueva variable para guardar la información que Posteo el ususario
-    data = request.get_data(as_text=True)
-    # Parseamos la data
-    parsed_data = parse_qs(data)
-    # Convertimos de diccionario "Raro" a JSON
-    json_data = {k: v[0] for k, v in parsed_data.items()}
+    data = request.get_json()
 
-
-    print(json_data)
     #Agregamos la informacion a lista del almacen
-    #lista_objetos_almacen.append(data)
+    lista_objetos_almacen.append(data)
 
-    return { 'received': True, 'status':200 }
-
+    return { 'received': True, 'status':200, 'info':data }
 
 
 # Creamos una clase que va a manejar todas las rutas
@@ -64,5 +64,6 @@ class APIRoutes():
     api.add_resource(HelloWorld, '/')
     
     # Agregamos un nuevo recurso
+#                   Recurso,  Ruta donde esta el recurso
     api.add_resource(Almacen, '/objetos_almacen')
 

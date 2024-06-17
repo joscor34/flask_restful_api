@@ -1,29 +1,46 @@
-def buscar_elemento_id_nombre(lista_objetos_almacen, parametro_id, parametro_nombre):
+from app.extensions import db
+from .models.producto import Producto
+
+# Esta función busca un elemento en la DB por ID o por nombre
+def buscar_elemento_id_nombre(parametro_id, parametro_nombre):
+  # Verificar si el usuario mando como Query el id
+  if parametro_id != None:
+    # Obtenemos el producto desde nuestra DB a través del ID
+    producto_obtenido = Producto.query.get_or_404(parametro_id)
+    # Creamos un JSON donde mostramos los datos del elemento
+    json_retornado = {
+      'ID': producto_obtenido.id,
+      'Nombre': producto_obtenido.nombre,
+      'Cantidad': producto_obtenido.cantidad
+    }
+    # Retornamos ese JSON para que el usuario lo vea
+    return json_retornado
+
+  # Verificar si el usuario mandó como Query el nombre
+  elif parametro_nombre != None:
+    # Buscamos un producto por su nombre y mostramos el primero o 404
+    producto_obtenido = Producto.query.filter_by(nombre=parametro_nombre).first_or_404()
+    # Creamos un JSON con la info obtenida
+    json_retornado = {
+      'ID': producto_obtenido.id,
+      'Nombre': producto_obtenido.nombre,
+      'Cantidad': producto_obtenido.cantidad
+    }
+    # Retornamos ese JSON para que el usuario lo vea
+    return json_retornado
+
+  else:
+    return {'Error': 'No pusiste ninguna Query'}, 404
   
-    # Comparamos si le esta llegando un parametro "nombre"
-    if parametro_nombre != None:
-      for objeto in lista_objetos_almacen:     
-        # Si la llave 'id' de un objeto coincide con lo que nos pide el usuiaro
-        if (objeto.get('nombre') == parametro_nombre):
-          # Regresamos el objeto que pidió
-          return { 'Objeto':objeto, 'status':200 }
-     # Si no encuentra coincidencia, le da un mensaje de no encontrado
-      return { 'Mensaje': 'Objeto no encontrado', 'status':404 } 
 
-
-    # Comparamos si el parámetro esta vacío 
-    elif parametro_id != None:
-      # Si el ID existe en nuestra BD
-      # Recorremos la lista de objetos en el almacen
-      for objeto in lista_objetos_almacen:     
-        # Si la llave 'id' de un objeto coincide con lo que nos pide el usuiaro
-        if (objeto.get('id') == int(parametro_id)):
-          # Regresamos el objeto que pidió
-          return { 'Objeto':objeto, 'status':200 }
-     # Si no encuentra coincidencia, le da un mensaje de no encontrado
-      return { 'Mensaje': 'Objeto no encontrado', 'status':404 }
-
-     
-    # Si el parametro no se mandó, regresamos todos los objetos de mi lista
-    return { 'Objetos': lista_objetos_almacen, 'status':200 }
-
+def crear_producto(nombre, cantidad):
+  nuevo_producto = Producto(nombre=nombre, cantidad=cantidad)
+  db.session.add(nuevo_producto)
+  db.session.commit()
+  json_retornado = {
+    'ID': nuevo_producto.id,
+    'Nombre': nuevo_producto.nombre,
+    'Cantidad': nuevo_producto.cantidad
+  }
+    # Retornamos ese JSON para que el usuario lo vea
+  return json_retornado

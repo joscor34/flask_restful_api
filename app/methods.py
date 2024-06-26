@@ -1,5 +1,48 @@
 from app.extensions import db
 from .models.producto import Producto
+from .models.usuarios import User
+from flask_jwt_extended import create_access_token
+from datetime import timedelta
+
+def inicio_sesion(email, password):
+  # Nos asegura que el usuario efectivamente esté registrado en la DB
+  user = User.get_user_by_email(email=email)
+  # Tiempo en el que el token expira
+  caducidad = timedelta(minutes=2)
+  # Si user no es None YYYYYY la contraseña hasheada coincide con la DB 
+  if user and (user.check_password(password=password)):
+    # Creamos un token de acceso
+    token_acceso = create_access_token(identity = user.username, expires_delta = caducidad)
+    return { 'Mensaje': 'Loggeado',
+             'Token': token_acceso 
+          }, 200
+
+  return {'Error': 'El correo o la contraseña no existen :( '}, 400
+
+
+def user_register(username, email, password):
+  # Busca un usuario por su email
+  user = User.get_user_by_email(email=email)
+
+  # Si el usuario ya estaba registrado, regresamos un error
+  if user is not None:
+    return { 'Error': 'Este correo ya está registrado :(' }, 403    
+
+
+  # Se crea un objeto de tipo 'User' con el username y el correo
+  nuevo_usuario = User(username=username, email=email)
+  # A ese objeto se le asigna una contraseña
+  nuevo_usuario.set_password(password=password) # <- Crearle una contraseña cifrada
+  # Guardamos el user en la DB
+  nuevo_usuario.save()
+
+  return { 'Nuevo usuario': {
+      'email': email,
+      'username': username
+    } 
+  }, 200 # Le damos una respuesta satisfactoria al usuario
+
+
 
 # Esta función busca un elemento en la DB por ID o por nombre
 def buscar_elemento_id_nombre(parametro_id, parametro_nombre):

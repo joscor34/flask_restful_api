@@ -3,7 +3,7 @@ from flask import Flask
 from flask_restful import Api
 from .routes import APIRoutes
 from .config import Config
-from .extensions import db
+from .extensions import db, jwt
 
 # Creamos una función para montar el servidor
 def crear_app():
@@ -17,6 +17,9 @@ def crear_app():
   # Conectamos la App con la base de datos
   db.init_app(app)
   
+  # Conectamos la App con JWT
+  jwt.init_app(app)
+
   # Antes de que se cree el acceso a la API, 
   # se ejecuta primero esto
   with app.app_context():

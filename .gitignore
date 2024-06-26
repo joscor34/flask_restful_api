@@ -1,4 +1,3 @@
 venv/
 app/__pycache__/
-config.py
 app/models/__pycache__/
